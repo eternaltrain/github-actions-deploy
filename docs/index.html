@@ -9,119 +9,114 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
         }
 
         body {
-            background: #f0f0f0;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
         }
 
+        /* 响应式布局 */
         .container {
+            display: flex;
+            flex-wrap: wrap;
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        /* 时钟样式 */
-        .clock-box {
-            background: #fff;
+        .main-content {
+            flex: 3;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+        }
+
+        .sidebar {
+            flex: 1;
+            padding: 20px;
+            min-width: 300px;
+        }
+
+        /* 头部样式 */
+        header {
+            background: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
         }
 
         /* 日历样式 */
-        .calendar-box {
-            background: #fff;
+        .calendar {
+            background: #f4f4f4;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
 
-        #clock {
-            font-size: 2em;
-            color: #333;
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        #countdown {
-            font-size: 1.5em;
-            color: #666;
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        .calendar-header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        #calendar {
+        #calendar-table {
             width: 100%;
-            border-collapse: collapse;
         }
 
-        #calendar td {
-            padding: 10px;
+        /* 时钟样式 */
+        .clock {
+            font-size: 2em;
             text-align: center;
-            border: 1px solid #ddd;
+            margin: 20px 0;
         }
 
-        .today {
-            background-color: #4CAF50;
-            color: white;
+        /* 收藏夹样式 */
+        .bookmarks {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
         }
 
         /* 响应式设计 */
-        @media (max-width: 600px) {
-            #clock {
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .clock {
                 font-size: 1.5em;
-            }
-            
-            #countdown {
-                font-size: 1.2em;
-            }
-            
-            .calendar-box, .clock-box {
-                padding: 10px;
-            }
-            
-            #calendar td {
-                padding: 5px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="clock-box">
-            <div id="clock"></div>
-            <div id="countdown"></div>
-            <div style="text-align:center; margin-top:10px;">
-                <input type="number" id="minutes" placeholder="输入倒计时分钟数">
-                <button onclick="startCountdown()">开始倒计时</button>
-            </div>
-        </div>
+    <header>
+        <h1>我的个人博客</h1>
+    </header>
 
-        <div class="calendar-box">
-            <div class="calendar-header">
-                <h2 id="currentYear"></h2>
-                <h3 id="currentMonth"></h3>
+    <div class="container">
+        <main class="main-content">
+            <article>
+                <h2>最新文章</h2>
+                <p>这里是博客内容...</p>
+            </article>
+
+            <section class="bookmarks">
+                <h3>收藏夹</h3>
+                <form id="bookmarkForm">
+                    <input type="text" id="bookmarkTitle" placeholder="标题" required>
+                    <input type="url" id="bookmarkUrl" placeholder="URL" required>
+                    <button type="submit">添加</button>
+                </form>
+                <ul id="bookmarkList"></ul>
+            </section>
+        </main>
+
+        <aside class="sidebar">
+            <div class="calendar">
+                <h3>日历</h3>
+                <div id="calendar"></div>
             </div>
-            <table id="calendar">
-                <tr>
-                    <th>日</th>
-                    <th>一</th>
-                    <th>二</th>
-                    <th>三</th>
-                    <th>四</th>
-                    <th>五</th>
-                    <th>六</th>
-                </tr>
-            </table>
-        </div>
+
+            <div class="clock">
+                <div id="digital-clock"></div>
+            </div>
+        </aside>
     </div>
 
     <script>
@@ -129,73 +124,89 @@
         function updateClock() {
             const now = new Date();
             const timeString = now.toLocaleTimeString();
-            document.getElementById('clock').textContent = timeString;
+            document.getElementById('digital-clock').textContent = timeString;
         }
-
-        // 倒计时功能
-        let countdownInterval;
-        function startCountdown() {
-            clearInterval(countdownInterval);
-            const minutes = parseInt(document.getElementById('minutes').value) || 0;
-            let seconds = minutes * 60;
-
-            countdownInterval = setInterval(() => {
-                seconds--;
-                if(seconds <= 0) {
-                    clearInterval(countdownInterval);
-                    alert('时间到！');
-                }
-                const displayMinutes = Math.floor(seconds / 60);
-                const displaySeconds = seconds % 60;
-                document.getElementById('countdown').textContent = 
-                    `${displayMinutes.toString().padStart(2, '0')}:${displaySeconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
         // 日历生成
         function generateCalendar() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
             
-            document.getElementById('currentYear').textContent = year;
-            document.getElementById('currentMonth').textContent = `${month + 1}月`;
+            const calendar = document.getElementById('calendar');
+            const table = document.createElement('table');
+            table.id = 'calendar-table';
+            
+            // 生成日历头
+            const headerRow = table.insertRow();
+            ['日', '一', '二', '三', '四', '五', '六'].forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                headerRow.appendChild(th);
+            });
 
-            let calendarHTML = '';
-            let dayCounter = 1;
-            
-            for(let week = 0; week < 6; week++) {
-                calendarHTML += '<tr>';
-                for(let day = 0; day < 7; day++) {
-                    if((week === 0 && day < firstDay.getDay()) || dayCounter > lastDay.getDate()) {
-                        calendarHTML += '<td></td>';
+            // 生成日期
+            let dateCount = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = table.insertRow();
+                for (let j = 0; j < 7; j++) {
+                    const cell = row.insertCell();
+                    if ((i === 0 && j < new Date(year, month, 1).getDay()) || dateCount > daysInMonth) {
+                        cell.textContent = '';
                     } else {
-                        const isToday = dayCounter === now.getDate();
-                        calendarHTML += `<td${isToday ? ' class="today"' : ''}>${dayCounter}</td>`;
-                        dayCounter++;
+                        cell.textContent = dateCount;
+                        if (dateCount === date.getDate()) {
+                            cell.style.backgroundColor = '#ddd';
+                        }
+                        dateCount++;
                     }
                 }
-                calendarHTML += '</tr>';
-                if(dayCounter > lastDay.getDate()) break;
             }
-            
-            document.getElementById('calendar').innerHTML += calendarHTML;
+            calendar.appendChild(table);
         }
-
-        // 初始化
-        setInterval(updateClock, 1000);
-        updateClock();
         generateCalendar();
 
-        // 每周更新日历
-        setInterval(() => {
-            document.getElementById('calendar').innerHTML = '<tr>'+
-                '<th>日</th><th>一</th><th>二</th><th>三</th>'+
-                '<th>四</th><th>五</th><th>六</th></tr>';
-            generateCalendar();
-        }, 604800000); // 每周更新一次
+        // 收藏夹功能
+        const bookmarkForm = document.getElementById('bookmarkForm');
+        const bookmarkList = document.getElementById('bookmarkList');
+
+        function loadBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+            bookmarkList.innerHTML = bookmarks.map(bookmark => `
+                <li>
+                    <a href="${bookmark.url}" target="_blank">${bookmark.title}</a>
+                    <button onclick="deleteBookmark('${bookmark.url}')">删除</button>
+                </li>
+            `).join('');
+        }
+
+        function saveBookmark(e) {
+            e.preventDefault();
+            const title = document.getElementById('bookmarkTitle').value;
+            const url = document.getElementById('bookmarkUrl').value;
+            
+            const bookmark = { title, url };
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+            bookmarks.push(bookmark);
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            
+            loadBookmarks();
+            bookmarkForm.reset();
+        }
+
+        function deleteBookmark(url) {
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarks')).filter(
+                bookmark => bookmark.url !== url
+            );
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        bookmarkForm.addEventListener('submit', saveBookmark);
+        loadBookmarks();
     </script>
 </body>
 </html>
