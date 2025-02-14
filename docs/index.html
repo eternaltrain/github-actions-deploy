@@ -3,92 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人博客</title>
+    <title>个人博客</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 20px;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
         }
 
-        header {
-            grid-column: 1 / -1;
-            background-color: #f0f0f0;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .sidebar {
-            background-color: #f8f8f8;
+        body {
+            background: #f0f0f0;
             padding: 20px;
         }
 
-        .post {
-            margin-bottom: 30px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 时钟样式 */
+        .clock-box {
+            background: #fff;
             padding: 20px;
-            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        /* 日历样式 */
+        .calendar-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
         #clock {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        #countdown {
+            font-size: 1.5em;
+            color: #666;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 15px;
         }
 
         #calendar {
-            margin-bottom: 20px;
-        }
-
-        #calendar table {
             width: 100%;
             border-collapse: collapse;
         }
 
         #calendar td {
-            padding: 5px;
+            padding: 10px;
             text-align: center;
             border: 1px solid #ddd;
         }
 
-        #weather {
-            font-size: 16px;
+        .today {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            #clock {
+                font-size: 1.5em;
+            }
+            
+            #countdown {
+                font-size: 1.2em;
+            }
+            
+            .calendar-box, .clock-box {
+                padding: 10px;
+            }
+            
+            #calendar td {
+                padding: 5px;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>欢迎来到我的博客</h1>
-        <nav>
-            <a href="#">首页</a> | 
-            <a href="#">文章</a> | 
-            <a href="#">关于</a>
-        </nav>
-    </header>
-
-    <main>
-        <article class="post">
-            <h2>我的第一篇文章</h2>
-            <p>这是我的博客的第一篇文章内容...</p>
-        </article>
-        <article class="post">
-            <h2>技术分享</h2>
-            <p>这里是一些技术相关内容...</p>
-        </article>
-    </main>
-
-    <div class="sidebar">
-        <div id="clock"></div>
-        
-        <div id="calendar">
-            <h3>日历</h3>
-            <table id="calendar-table"></table>
+    <div class="container">
+        <div class="clock-box">
+            <div id="clock"></div>
+            <div id="countdown"></div>
+            <div style="text-align:center; margin-top:10px;">
+                <input type="number" id="minutes" placeholder="输入倒计时分钟数">
+                <button onclick="startCountdown()">开始倒计时</button>
+            </div>
         </div>
 
-        <div id="weather">
-            <h3>天气</h3>
-            <div id="weather-info">正在获取天气...</div>
+        <div class="calendar-box">
+            <div class="calendar-header">
+                <h2 id="currentYear"></h2>
+                <h3 id="currentMonth"></h3>
+            </div>
+            <table id="calendar">
+                <tr>
+                    <th>日</th>
+                    <th>一</th>
+                    <th>二</th>
+                    <th>三</th>
+                    <th>四</th>
+                    <th>五</th>
+                    <th>六</th>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -96,62 +128,74 @@
         // 实时时钟
         function updateClock() {
             const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            document.getElementById('clock').innerHTML = now.toLocaleDateString('zh-CN', options);
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('clock').textContent = timeString;
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+
+        // 倒计时功能
+        let countdownInterval;
+        function startCountdown() {
+            clearInterval(countdownInterval);
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            let seconds = minutes * 60;
+
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if(seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    alert('时间到！');
+                }
+                const displayMinutes = Math.floor(seconds / 60);
+                const displaySeconds = seconds % 60;
+                document.getElementById('countdown').textContent = 
+                    `${displayMinutes.toString().padStart(2, '0')}:${displaySeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
 
         // 日历生成
         function generateCalendar() {
-            const table = document.getElementById('calendar-table');
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             
-            let html = '<tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr><tr>';
+            document.getElementById('currentYear').textContent = year;
+            document.getElementById('currentMonth').textContent = `${month + 1}月`;
+
+            let calendarHTML = '';
+            let dayCounter = 1;
             
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                html += '<td></td>';
-            }
-            
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                if ((firstDay.getDay() + day - 1) % 7 === 0) {
-                    html += '</tr><tr>';
+            for(let week = 0; week < 6; week++) {
+                calendarHTML += '<tr>';
+                for(let day = 0; day < 7; day++) {
+                    if((week === 0 && day < firstDay.getDay()) || dayCounter > lastDay.getDate()) {
+                        calendarHTML += '<td></td>';
+                    } else {
+                        const isToday = dayCounter === now.getDate();
+                        calendarHTML += `<td${isToday ? ' class="today"' : ''}>${dayCounter}</td>`;
+                        dayCounter++;
+                    }
                 }
-                html += `<td>${day}</td>`;
+                calendarHTML += '</tr>';
+                if(dayCounter > lastDay.getDate()) break;
             }
             
-            html += '</tr>';
-            table.innerHTML = html;
+            document.getElementById('calendar').innerHTML += calendarHTML;
         }
+
+        // 初始化
+        setInterval(updateClock, 1000);
+        updateClock();
         generateCalendar();
 
-        // 简单天气模拟（实际使用时需要替换为真实天气API）
-        function getWeather() {
-            const weatherData = {
-                temp: '25°C',
-                condition: '晴',
-                location: '北京'
-            };
-            document.getElementById('weather-info').innerHTML = `
-                地点：${weatherData.location}<br>
-                天气：${weatherData.condition}<br>
-                温度：${weatherData.temp}
-            `;
-        }
-        setTimeout(getWeather, 1000); // 模拟API延迟
+        // 每周更新日历
+        setInterval(() => {
+            document.getElementById('calendar').innerHTML = '<tr>'+
+                '<th>日</th><th>一</th><th>二</th><th>三</th>'+
+                '<th>四</th><th>五</th><th>六</th></tr>';
+            generateCalendar();
+        }, 604800000); // 每周更新一次
     </script>
 </body>
 </html>
